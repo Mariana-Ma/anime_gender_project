@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Anime Popularity vs. Score</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Anime Exploration</h1>
+  <h3>Explore popularity, rating, gender representation, and personality traits in anime.</h3>
+
+  <section id="scatter-section">
+    <h3>Popularity vs Rating</h3>
+    <h4>Explore the relationship between anime popularity, average rating, and genre.</h4>
+    <div style="display: flex;">
+        <div id="scatter-plot" style="flex: 2;"></div>
+        <div id="details" style="flex: 1; padding-left: 20px;">
+          <h2>Click a dot to see details</h2>
+            <div id="anime-card">
+                <h3 id="anime-title"></h3>
+                <h4 id="anime-genre"></h4>
+                <img id="anime-img" src="" alt="" style="max-width: 100%;">
+                <p id="anime-desc"></p>
+            </div>
+        </div>
+    </div> 
+
+    <p>Note: X-axis is on a log scale to visualize wide ranges in popularity.</p>
+  </section>
+
+  <section id="stackedbar-section">
+    <h2>Gender Breakdown</h2>
+    <div id="stackedbar-plot"></div>
+  </section>
+
+  <section id="personality-section">
+    <h2>Personality Traits by Gender</h2>
+    <div id="personality-plot"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6"></script>
+  <script src="utils.js"></script>
+  <script src="scatter.js"></script>
+  <script src="stackedBar.js"></script>
+  <script src="personality.js"></script>
+</body>
+  
+</html>
