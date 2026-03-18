@@ -62,8 +62,21 @@ function drawScatter(data) {
     container.innerHTML = "";
 
     const toggleBtn = document.createElement("button");
-    toggleBtn.textContent = "Toggle Genre / % Female";
-    toggleBtn.style.marginBottom = "10px";
+    toggleBtn.textContent = "Color by % Female";
+    toggleBtn.style.cssText = `
+        padding: 8px 18px;
+        border: 1.5px solid #e75480;
+        border-radius: 10px;
+        cursor: pointer;
+        background: #e75480;
+        color: #fff;
+        font-family: system-ui, sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 6px;
+        transition: all 0.2s ease;
+        letter-spacing: 0.3px;
+    `;
     container.appendChild(toggleBtn);
 
     let colorByGenre = true;
@@ -165,12 +178,14 @@ function drawScatter(data) {
 
     toggleBtn.addEventListener("click", () => {
         colorByGenre = !colorByGenre;
-
-        // Remove old plot only, keep button
+        toggleBtn.textContent = colorByGenre ? "Color by % Female" : "Color by Genre";
+        toggleBtn.style.background = colorByGenre ? "#e75480" : "#333";
+        toggleBtn.style.borderColor = colorByGenre ? "#e75480" : "#333";
+    
         while (container.children.length > 1) {
             container.removeChild(container.lastChild);
         }
-
+    
         plot = renderPlot();
         container.appendChild(plot);
         attachDotListeners(plot, data);

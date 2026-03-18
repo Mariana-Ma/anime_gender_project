@@ -92,8 +92,7 @@ function buildDumbbell(anime, anime_chars) {
         { label: "7.0 – 7.5", min: 7.0, max: 7.5      },
         { label: "7.5 – 8.0", min: 7.5, max: 8.0      },
         { label: "8.0 – 8.5", min: 8.0, max: 8.5      },
-        { label: "8.5 – 9.0", min: 8.5, max: 9.0      },
-        { label: "9.0+",      min: 9.0, max: Infinity  }
+        { label: "8.5+", min: 8.5, max: Infinity      }
     ];
 
     function getBinnedData(mode) {
@@ -120,22 +119,21 @@ function buildDumbbell(anime, anime_chars) {
         const rows = [];
         bins.forEach(b => {
             const roles = counts[b.label];
-            const mainTotal = roles.Main.Male + roles.Main.Female;
-            const suppTotal = roles.Supporting.Male + roles.Supporting.Female;
-            if (mainTotal === 0 || suppTotal === 0) return;
-
-            const mainFemalePct = roles.Main.Female / mainTotal;
-            const suppFemalePct = roles.Supporting.Female / suppTotal;
-
+            
+            const totalFemale = roles.Main.Female + roles.Supporting.Female;
+            if (totalFemale === 0) return;
+        
+            const femaleMainPct = roles.Main.Female / totalFemale;
+            const femaleSuppPct = roles.Supporting.Female / totalFemale;
+        
             rows.push({
                 label: b.label,
-                main:       mainFemalePct,
-                supporting: suppFemalePct,
+                main:       femaleMainPct,
+                supporting: femaleSuppPct,
                 mainCount:  roles.Main.Female,
-                mainTotal,
                 suppCount:  roles.Supporting.Female,
-                suppTotal,
-                gap: mainFemalePct - suppFemalePct
+                total:      totalFemale,
+                gap:        femaleMainPct - femaleSuppPct
             });
         });
 
@@ -149,8 +147,8 @@ function buildDumbbell(anime, anime_chars) {
         const labels = rows.map(r => r.label);
 
         const dotData = rows.flatMap(r => [
-            { label: r.label, value: r.main,       role: "Main",       count: r.mainCount, total: r.mainTotal },
-            { label: r.label, value: r.supporting,  role: "Supporting", count: r.suppCount, total: r.suppTotal }
+            { label: r.label, value: r.main,       role: "Main",       count: r.mainCount, total: r.total },
+            { label: r.label, value: r.supporting,  role: "Supporting", count: r.suppCount, total: r.total }
         ]);
 
         const segData = rows.map(r => ({
@@ -177,7 +175,7 @@ function buildDumbbell(anime, anime_chars) {
         plotContainer.appendChild(titleEl);
 
         const subtitleEl = document.createElement("p");
-        subtitleEl.textContent = subtitles[mode] + " Dark dot = Main, light dot = Supporting. Hover for details.";
+        subtitleEl.textContent = subtitles[mode] + " Dark dot = Main, light dot = Supporting.";
         subtitleEl.style.fontFamily = "system-ui, sans-serif";
         subtitleEl.style.fontSize = "13px";
         subtitleEl.style.color = "#666";

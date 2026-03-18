@@ -104,8 +104,8 @@ function buildStackedBar(anime, anime_chars) {
             { label: "7.0 – 7.5", min: 7.0, max: 7.5 },
             { label: "7.5 – 8.0", min: 7.5, max: 8.0 },
             { label: "8.0 – 8.5", min: 8.0, max: 8.5 },
-            { label: "8.5 – 9.0", min: 8.5, max: 9.0 },
-            { label: "9.0+",      min: 9.0, max: Infinity }
+            { label: "8.5+", min: 8.5, max: Infinity },
+            //{ label: "9.0+",      min: 9.0, max: Infinity }
         ];
 
         const counts = {};
@@ -124,11 +124,11 @@ function buildStackedBar(anime, anime_chars) {
 
     function getMembersData() {
         const memberBins = [
-            { label: "Under 50k",    min: 0,       max: 50000 },
-            { label: "50k – 200k",    min: 50000,   max: 200000 },
+            { label: "Under 200k",    min: 0,   max: 200000 },
             { label: "200k – 500k",   min: 200000,   max: 500000 },
             { label: "500k – 1M",  min: 500000,  max: 1000000 },
-            { label: "1M+",        min: 1000000,  max: Infinity }
+            { label: "1M - 2M",        min: 1000000,  max: 2000000 },
+            { label: "2M+",        min: 2000000,  max: Infinity}
         ];
 
         const counts = {};

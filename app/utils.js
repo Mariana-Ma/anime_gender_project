@@ -25,3 +25,9 @@ const ALLOWED_GENRES = new Set([
     Female: "#e75480"
   };
   
+  /*
+    const GENDER_COLORS = {
+    Male: "#87c3ba",
+    Female: "#e5b2ed"
+  };
+  */
