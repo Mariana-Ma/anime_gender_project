@@ -100,12 +100,11 @@ function buildStackedBar(anime, anime_chars) {
 
     function getScoreData() {
         const scoreBins = [
-            { label: "6.0 – 7.0", min: 6.0, max: 7.0 },
-            { label: "7.0 – 7.5", min: 7.0, max: 7.5 },
-            { label: "7.5 – 8.0", min: 7.5, max: 8.0 },
-            { label: "8.0 – 8.5", min: 8.0, max: 8.5 },
             { label: "8.5+", min: 8.5, max: Infinity },
-            //{ label: "9.0+",      min: 9.0, max: Infinity }
+            { label: "8.0 – 8.5", min: 8.0, max: 8.5 },
+            { label: "7.5 – 8.0", min: 7.5, max: 8.0 },
+            { label: "7.0 – 7.5", min: 7.0, max: 7.5 },
+            { label: "6.0 – 7.0", min: 6.0, max: 7.0 },
         ];
 
         const counts = {};
@@ -124,11 +123,11 @@ function buildStackedBar(anime, anime_chars) {
 
     function getMembersData() {
         const memberBins = [
-            { label: "Under 200k",    min: 0,   max: 200000 },
-            { label: "200k – 500k",   min: 200000,   max: 500000 },
-            { label: "500k – 1M",  min: 500000,  max: 1000000 },
-            { label: "1M - 2M",        min: 1000000,  max: 2000000 },
-            { label: "2M+",        min: 2000000,  max: Infinity}
+            { label: "2M+", min: 2000000, max: Infinity},
+            { label: "1M - 2M", min: 1000000, max: 2000000 },
+            { label: "500k – 1M", min: 500000, max: 1000000 },
+            { label: "200k – 500k", min: 200000, max: 500000 },
+            { label: "Under 200k", min: 0, max: 200000 },
         ];
 
         const counts = {};
@@ -182,8 +181,14 @@ function buildStackedBar(anime, anime_chars) {
 
         const subtitles = {
             genre:   "Sorted by % female main characters. Hover bars for details.",
-            score:   "From lowest to highest rated anime. Hover bars for details.",
-            members: "From niche to mainstream anime. Hover bars for details."
+            score:   "From highest to lowest rated anime. Hover bars for details.",
+            members: "From mainstream to niche anime. Hover bars for details."
+        };
+
+        const y_axes = {
+            genre:   "\u00A0",
+            score:   "Average Score (1-10)",
+            members: "Popularity (members following)"
         };
 
         const titleEl = document.createElement("h3");
@@ -199,6 +204,15 @@ function buildStackedBar(anime, anime_chars) {
         subtitleEl.style.color = "#666";
         subtitleEl.style.marginBottom = "12px";
         plotContainer.appendChild(subtitleEl);
+
+        const yLabelEl = document.createElement("p");
+        yLabelEl.textContent = y_axes[mode];
+        yLabelEl.style.cssText = `
+            font-family: system-ui, sans-serif;
+            font-size: 14px;
+            margin: 0 0 -50px 110px;  /* 120px matches your marginLeft */
+        `;
+        plotContainer.appendChild(yLabelEl);
 
         const plot = Plot.plot({
             width: 825,
@@ -246,6 +260,18 @@ function buildStackedBar(anime, anime_chars) {
         });
 
         plotContainer.appendChild(plot);
+
+        const legendDiv = plot.querySelector("div");
+        if (legendDiv) {
+            legendDiv.style.cssText = `
+                position: absolute;
+                top: 0;
+                right: 350px;
+                font-family: system-ui, sans-serif;
+                font-size: 13px;
+            `;
+            plot.style.position = "relative";
+        }
 
         const total = Object.values(counts).reduce((s, c) => s + c.Male + c.Female, 0);
         noteEl.textContent = `Based on ${total.toLocaleString()} main characters across top 2000 anime.`;

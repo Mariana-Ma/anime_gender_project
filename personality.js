@@ -6,7 +6,6 @@ d3.json("cleaned_data/trait_stats.json").then(data => {
 
 function buildTraitCharts(data) {
     buildBarChart(data);
-    buildDotPlot(data);
 }
 
 function buildBarChart(data) {
@@ -14,13 +13,13 @@ function buildBarChart(data) {
     container.innerHTML = "";
 
     const titleEl = document.createElement("h3");
-    titleEl.textContent = "Most Gendered Personality Traits in Anime";
+    titleEl.textContent = "Most Common Personality Traits by Gender";
     titleEl.style.fontFamily = "system-ui, sans-serif";
     titleEl.style.marginBottom = "4px";
     container.appendChild(titleEl);
 
     const subtitleEl = document.createElement("p");
-    subtitleEl.textContent = "Selected traits with strong gender skew and high occurrence count. Bars show % of characters of that gender described with each trait.";
+    subtitleEl.textContent = "Top traits for male and female characters. Bars show % of characters of that gender described with each trait.";
     subtitleEl.style.fontFamily = "system-ui, sans-serif";
     subtitleEl.style.fontSize = "13px";
     subtitleEl.style.color = "#666";
@@ -29,58 +28,63 @@ function buildBarChart(data) {
 
     // Top 6 most common for males by count
     const maleTraits = [...data]
-    .sort((a, b) => b.male_count - a.male_count)
-    .slice(0, 7)
-    .map(d => d.trait)
-    .filter(t => t !== "popular");
+        .sort((a, b) => b.male_count - a.male_count)
+        .slice(0, 7)
+        .map(d => d.trait)
+        .filter(t => t !== "popular");
 
-    // Top 6 most common for females by count
+    // Top 6 most common for females by count, no duplicates
     const femaleTraits = [...data]
-    .sort((a, b) => b.female_count - a.female_count)
-    .slice(0, 8)
-    .map(d => d.trait)
-    .filter(t => !maleTraits.includes(t))
-    .filter(t => t !== "popular");; // remove duplicates
+        .sort((a, b) => b.female_count - a.female_count)
+        .slice(0, 8)
+        .map(d => d.trait)
+        .filter(t => !maleTraits.includes(t))
+        .filter(t => t !== "popular");
 
-    // Order: male traits at top (most male-skewed first), female at bottom
+    // Sort by female_share ascending - most male-skewed at top
     const traitOrder = [...maleTraits, ...femaleTraits]
-    .map(t => data.find(d => d.trait === t))
-    .filter(Boolean)
-    .sort((a, b) => a.female_share - b.female_share)  // most male-skewed first
-    .map(d => d.trait);
+        .map(t => data.find(d => d.trait === t))
+        .filter(Boolean)
+        .sort((a, b) => a.female_share - b.female_share)
+        .map(d => d.trait);
 
-    // Filter data to just these traits
     const traitByName = {};
     data.forEach(d => { traitByName[d.trait] = d; });
 
-    const selected = traitOrder
+    // Build tidy data — one row per trait per gender
+    const tidyData = traitOrder
         .filter(t => traitByName[t])
-        .map(t => traitByName[t]);
+        .flatMap(t => {
+            const d = traitByName[t];
+            return [
+                { trait: t, gender: "Male",   value: d.male_pct*100,   count: d.male_count,   female_share: d.female_share },
+                { trait: t, gender: "Female", value: d.female_pct*100, count: d.female_count, female_share: d.female_share }
+            ];
+        });
 
-    // Build diverging data — male goes negative, female positive
-    const divergingData = selected.flatMap(d => [
-        { trait: d.trait, value: -d.male_pct,  gender: "Male",   display: d.male_pct,   female_share: d.female_share, section: maleTraits.includes(d.trait) ? "male" : "female" },
-        { trait: d.trait, value:  d.female_pct, gender: "Female", display: d.female_pct, female_share: d.female_share, section: maleTraits.includes(d.trait) ? "male" : "female" }
-    ]);
-
-    const maxVal = d3.max(selected, d => Math.max(d.male_pct, d.female_pct));
+    const maxVal = d3.max(tidyData, d => d.value);
 
     const plot = Plot.plot({
         width: 900,
         height: 420,
-        marginLeft: 90,
-        marginRight: 80,
-        marginBottom: 50,
+        marginLeft: 50,
+        marginRight: 20,
+        marginBottom: 60,
         marginTop: 30,
         x: {
-            label: "← Male   |   Female →",
-            domain: [-maxVal * 1.15, maxVal * 1.15],
-            tickFormat: d => `${Math.round(Math.abs(d) * 100)}%`,
-            grid: true
+            axis: null,
+            label: null,
+            tickFormat: () => ""  // hide Female/Male labels under each group
+        },
+        fx: {
+            label: null,
+            domain: traitOrder,
+            padding: 0.3
         },
         y: {
-            label: null,
-            domain: traitOrder
+            label: "% of characters →",
+            tickFormat: d => d + "%", 
+            grid: true,
         },
         color: {
             domain: ["Female", "Male"],
@@ -93,46 +97,14 @@ function buildBarChart(data) {
             background: "transparent"
         },
         marks: [
-            // Separator line between male and female trait sections
-            Plot.ruleY(["tsundere"], {
-                stroke: "#ddd",
-                strokeWidth: 1,
-                strokeDasharray: "4,4",
-                y1: d => d,
-                dy: 14
-            }),
-
-            // Center line
-            Plot.ruleX([0], {
-                stroke: "#999",
-                strokeWidth: 1.5
-            }),
-
-            // Diverging bars
-            Plot.barX(divergingData, {
-                y: "trait",
-                x1: 0,
-                x2: "value",
+            Plot.barY(tidyData, {
+                fx: "trait",
+                x: "gender",
+                y: "value",
                 fill: "gender",
-                title: d => {
-                    const pct = Math.round(d.display * 100);
-                    const femalePct = Math.round(d.female_share * 100);
-                    return `${d.trait} — ${d.gender}\n${pct}% of ${d.gender.toLowerCase()} characters\n${femalePct}% of all occurrences are female`;
-                }
+                title: d => `${d.trait} — ${d.gender}\n${d.value.toFixed(1)}% of ${d.gender.toLowerCase()} characters\n(${d.count} characters)`
             }),
-
-            /*
-            // Value labels
-            Plot.text(divergingData, {
-                y: "trait",
-                x: "value",
-                text: d => `${Math.round(d.display * 100)}%`,
-                dx: d => d.gender === "Male" ? -4 : 4,
-                textAnchor: d => d.gender === "Male" ? "end" : "start",
-                fontSize: 13,
-                fill: "#555"
-            })
-            */
+            Plot.ruleY([0])
         ]
     });
 
@@ -140,22 +112,12 @@ function buildBarChart(data) {
     container.appendChild(plotContainer);
     plotContainer.appendChild(plot);
 
-    // Section labels
-    const labelDiv = document.createElement("div");
-    labelDiv.style.display = "flex";
-    labelDiv.style.justifyContent = "space-between";
-    labelDiv.style.fontFamily = "system-ui, sans-serif";
-    labelDiv.style.fontSize = "12px";
-    labelDiv.style.color = "#888";
-    labelDiv.style.marginTop = "4px";
-    plotContainer.appendChild(labelDiv);
-
     const noteEl = document.createElement("p");
     noteEl.style.fontFamily = "system-ui, sans-serif";
     noteEl.style.fontSize = "12px";
     noteEl.style.color = "#999";
     noteEl.style.marginTop = "8px";
-    noteEl.textContent = "Traits selected based on both strength of gender skew and total occurrence count. Males skew toward competence and control; females toward appearance, emotion and anime archetypes.";
+    noteEl.textContent = "Top traits by count for male and female characters. Sorted from most male-skewed (top) to most female-skewed (bottom).";
     container.appendChild(noteEl);
 }
 
@@ -295,145 +257,3 @@ function buildRadarChart(data) {
     container.appendChild(noteEl);
 }
 */
-function buildDotPlot(data) {
-    const container = document.getElementById("traits-dot-plot");
-    container.innerHTML = "";
-
-    const titleEl = document.createElement("h3");
-    titleEl.textContent = "Personality Profile: Male vs Female Characters";
-    titleEl.style.fontFamily = "system-ui, sans-serif";
-    titleEl.style.marginBottom = "4px";
-    container.appendChild(titleEl);
-
-    const subtitleEl = document.createElement("p");
-    subtitleEl.textContent = "Most common traits overall. Bars show difference in % — positive means more common in male characters, negative means more common in female characters.";
-    subtitleEl.style.fontFamily = "system-ui, sans-serif";
-    subtitleEl.style.fontSize = "13px";
-    subtitleEl.style.color = "#666";
-    subtitleEl.style.marginBottom = "12px";
-    container.appendChild(subtitleEl);
-
-    // Top 8 for each gender, union, deduplicated
-    const topMaleTraits = [...data]
-        .sort((a, b) => b.male_count - a.male_count)
-        .slice(0, 8)
-        .map(d => d.trait);
-
-    const topFemaleTraits = [...data]
-        .sort((a, b) => b.female_count - a.female_count)
-        .slice(0, 8)
-        .map(d => d.trait);
-
-    const selectedTraits = [...new Set([...topMaleTraits, ...topFemaleTraits])];
-
-    const traitByName = {};
-    data.forEach(d => { traitByName[d.trait] = d; });
-
-    // Build rows with gap = male_pct - female_pct
-    const rows = selectedTraits
-        .filter(t => traitByName[t])
-        .map(t => {
-            const d = traitByName[t];
-            return {
-                trait: t,
-                male_pct: d.male_pct,
-                female_pct: d.female_pct,
-                male_count: d.male_count,
-                female_count: d.female_count,
-                total: d.total,
-                gap: d.male_pct - d.female_pct  // positive = more male
-            };
-        })
-        .sort((a, b) => b.gap - a.gap);  // most male at top, most female at bottom
-
-    const traitOrder = rows.map(r => r.trait);
-    const maxAbs = d3.max(rows, r => Math.abs(r.gap));
-
-    const plot = Plot.plot({
-        width: 900,
-        height: 420,
-        marginLeft: 110,
-        marginRight: 60,
-        marginBottom: 60,
-        marginTop: 30,
-        x: {
-            label: "← More common in females   |   More common in males →",
-            domain: [-maxAbs * 1.3, maxAbs * 1.3],
-            tickFormat: d => `${d > 0 ? "+" : ""}${d.toFixed(1)}%`,
-            grid: true,
-            labelOffset: 45
-        },
-        y: {
-            label: null,
-            domain: traitOrder
-        },
-        style: {
-            fontSize: "13px",
-            fontFamily: "system-ui, sans-serif",
-            background: "transparent"
-        },
-        marks: [
-            // Center line
-            Plot.ruleX([0], {
-                stroke: "#999",
-                strokeWidth: 1.5
-            }),
-
-            // Bars from 0
-            Plot.barX(rows, {
-                y: "trait",
-                x1: 0,
-                x2: "gap",
-                fill: d => d.gap > 0 ? GENDER_COLORS.Male : GENDER_COLORS.Female,
-                fillOpacity: 0.8,
-                title: d => {
-                    const gap = d.gap.toFixed(1);
-                    return `${d.trait}\nMale: ${d.male_pct.toFixed(1)}% (${d.male_count} chars)\nFemale: ${d.female_pct.toFixed(1)}% (${d.female_count} chars)\nGap: ${gap > 0 ? "+" : ""}${gap}%`;
-                }
-            }),
-
-            // Dots at the end of each bar
-            Plot.dot(rows, {
-                y: "trait",
-                x: "gap",
-                fill: d => d.gap > 0 ? GENDER_COLORS.Male : GENDER_COLORS.Female,
-                r: 6,
-                title: d => `${d.trait}: ${d.gap > 0 ? "+" : ""}${d.gap.toFixed(1)}% (${d.gap > 0 ? "more male" : "more female"})`
-            }),
-
-            // Value labels
-            Plot.text(rows, {
-                y: "trait",
-                x: "gap",
-                text: d => `${d.gap > 0 ? "+" : ""}${d.gap.toFixed(1)}%`,
-                dx: d => d.gap > 0 ? 8 : -8,
-                textAnchor: d => d.gap > 0 ? "start" : "end",
-                fontSize: 11,
-                fill: d => d.gap > 0 ? GENDER_COLORS.Male : GENDER_COLORS.Female
-            }),
-
-            // Sample size annotations
-            Plot.text(rows, {
-                y: "trait",
-                x: -maxAbs * 1.3,
-                text: d => `n=${d.total}`,
-                textAnchor: "start",
-                fontSize: 10,
-                fill: "#bbb",
-                dx: 2
-            })
-        ]
-    });
-
-    const plotContainer = document.createElement("div");
-    container.appendChild(plotContainer);
-    plotContainer.appendChild(plot);
-
-    const noteEl = document.createElement("p");
-    noteEl.style.fontFamily = "system-ui, sans-serif";
-    noteEl.style.fontSize = "12px";
-    noteEl.style.color = "#999";
-    noteEl.style.marginTop = "8px";
-    noteEl.textContent = "Shows top 8 most common traits for each gender (union). Gap = male% minus female%. n = total characters with that trait.";
-    container.appendChild(noteEl);
-}
