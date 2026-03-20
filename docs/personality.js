@@ -1,6 +1,6 @@
 // traits.js
 
-d3.json("../cleaned_data/trait_stats.json").then(data => {
+d3.json("cleaned_data/trait_stats.json").then(data => {
     buildTraitCharts(data);
 });
 

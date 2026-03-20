@@ -1,9 +1,9 @@
 // quadrant.js
 
 Promise.all([
-    d3.csv("../cleaned_data/anime.csv", d3.autoType),
-    d3.csv("../data/anime_characters.csv", d3.autoType),
-    d3.csv("../cleaned_data/character_personalities_final.csv", d3.autoType)
+    d3.csv("cleaned_data/anime.csv", d3.autoType),
+    d3.csv("data/anime_characters.csv", d3.autoType),
+    d3.csv("cleaned_data/character_personalities_final.csv", d3.autoType)
 ]).then(([anime, anime_chars, chars]) => {
     const genderByChar = {};
     chars.forEach(c => {
