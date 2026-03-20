@@ -14,14 +14,20 @@ h3 {
     margin-bottom: 0.1em;
 }
 
-#anime-card h3 {
+#anime-card h4 {
     margin-left: 15px;
     margin-bottom: 5px;
+    font-size: 17px;
 }
 
-#anime-card h4 {
+#anime-card h5 {
     margin-top: 0;
     margin-left: 15px;
+    margin-bottom: 5px
+}
+
+#anime-card p {
+    font-size: 14px;
 }
 
 p {
@@ -38,25 +44,217 @@ p {
     display: none;
     background-color: #d5edf8;
     border-radius: 10px;
-    padding: 10px;
-    width: 360px;
-    max-height: 600px;
+    padding: 7px;
+    width: 320px;
+    height: 510px;
+    margin-left: 30px;
+    margin-top: 10px;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
     word-wrap: break-word;
 }
 
 #anime-desc {
     white-space: pre-wrap;
-    max-height: 150px;
+    max-height: 180px;
     overflow-y: auto;
     padding-left: 15px;
+    padding-right: 10px;
 }
 
 #anime-img {
-    width: 175px;
-    height: 250px;
+    width: 135px;
+    height: 195px;
     display: block;
     margin: 0 auto 10px auto;
-    margin-bottom: 30px;
+    margin-top: 15px;
+    margin-bottom: 15px;
     border-radius: 8px;
+}
+
+#scatter-section {
+    zoom: 0.95;
+}
+
+/* ── Scatter controls panel ─────────────────────────── */
+.controls-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: system-ui, sans-serif;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 10px 14px;
+    max-width: 1000px;
+    margin-bottom: 10px;
+}
+
+.controls-section-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #888;
+    min-width: 70px;
+}
+
+.controls-sub-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 0.03em;
+}
+
+.controls-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 0;
+}
+
+.controls-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.controls-filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.controls-filter-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.controls-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    left: 10px;
+    flex-wrap: wrap;
+}
+
+.controls-slider-wrapper {
+    position: relative;
+    width: 280px;
+    height: 36px;
+    left: 10px;
+    flex-shrink: 0;
+}
+
+.controls-slider-gradient {
+    position: absolute;
+    top: 8px; left: 0; right: 0;
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(to right, #87c3ba, #e5b2ed);
+}
+
+.controls-slider-dim {
+    position: absolute;
+    top: 8px; left: 0;
+    width: 0%;
+    height: 12px;
+    border-radius: 6px 0 0 6px;
+    background: rgba(255,255,255,0.65);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.controls-slider-tick {
+    position: absolute;
+    top: 23px;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #aaa;
+}
+
+.controls-slider-input {
+    position: absolute;
+    top: 4px; left: 0;
+    width: 100%; height: 20px;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+    z-index: 2;
+}
+
+.controls-slider-handle {
+    position: absolute;
+    top: 5px;
+    transform: translateX(-50%);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #aaa;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    pointer-events: none;
+    z-index: 3;
+}
+
+.controls-slider-value {
+    font-size: 14px;
+    color: #999;
+    min-width: 180px;
+    margin-left: 5px;
+    margin-bottom: 7px;
+}
+
+.controls-all-male-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.controls-all-male-row label {
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.controls-genre-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.controls-genre-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.controls-genre-ctrl {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    margin-left: 4px;
+}
+
+.controls-genre-ctrl-btn {
+    padding: 3px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    background: #fff;
+    color: #555;
+}
+
+.controls-genre-ctrl-btn:hover {
+    background: #f0f0f0;
+}
+
+.controls-count-label {
+    font-size: 14px;
+    color: #999;
+    margin-bottom: 6px;
 }

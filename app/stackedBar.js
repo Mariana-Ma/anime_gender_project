@@ -74,7 +74,7 @@ function buildStackedBar(anime, anime_chars) {
 
     const noteEl = document.createElement("p");
     noteEl.style.fontFamily = "system-ui, sans-serif";
-    noteEl.style.fontSize = "12px";
+    noteEl.style.fontSize = "14px";
     noteEl.style.color = "#999";
     noteEl.style.marginTop = "8px";
     container.appendChild(noteEl);
@@ -201,8 +201,8 @@ function buildStackedBar(anime, anime_chars) {
         plotContainer.appendChild(subtitleEl);
 
         const plot = Plot.plot({
-            width: 900,
-            height: 500,
+            width: 825,
+            height: 475,
             marginLeft: 120,
             marginBottom: 60,
             marginTop: 40,
