@@ -1,25 +1,12 @@
 // lineChart.js
 
-Promise.all([
-    d3.csv("cleaned_data/anime.csv", d3.autoType),
-    d3.csv("data/anime_characters.csv", d3.autoType),
-    d3.csv("cleaned_data/character_personalities_final.csv", d3.autoType)
-]).then(([anime, anime_chars, chars]) => {
-    const genderByChar = {};
-    chars.forEach(c => {
-        genderByChar[c.character_id] = c.gender;
-    });
-    anime_chars.forEach(d => {
-        d.gender = genderByChar[d.character_id] ?? null;
-    });
-
-    buildLineChart(anime, anime_chars);
+dataReady.then(() => {
+    buildLineChart(TOP2000_ANIME, TOP2000_ANIME_CHARS);
 }).catch(err => {
     console.error("Data loading error:", err);
 });
 
 function buildLineChart(anime, anime_chars) {
-    // Extract year from start_date
     const animeById = {};
     anime.forEach(d => {
         if (d.start_date) {
@@ -28,13 +15,14 @@ function buildLineChart(anime, anime_chars) {
         animeById[d.anime_id] = d;
     });
 
-    // Only main characters with known gender
     const mainChars = anime_chars.filter(d =>
         d.role === "Main" &&
         (d.gender === "Male" || d.gender === "Female")
     );
 
-    // Count male/female main chars per year
+    console.log("Total main chars:", mainChars.length);
+    console.log("Female:", mainChars.filter(d => d.gender === "Female").length);
+    console.log("Male:", mainChars.filter(d => d.gender === "Male").length);
     const yearCounts = {};
     mainChars.forEach(d => {
         const a = animeById[d.anime_id];
@@ -43,7 +31,6 @@ function buildLineChart(anime, anime_chars) {
         yearCounts[a.year][d.gender]++;
     });
 
-    // Build tidy data, filter to years with enough data
     const rows = Object.entries(yearCounts)
         .map(([year, counts]) => {
             const total = counts.Male + counts.Female;
@@ -58,7 +45,6 @@ function buildLineChart(anime, anime_chars) {
         .filter(d => d.year >= 1990 && d.year <= 2024 && d.total >= 10)
         .sort((a, b) => a.year - b.year);
 
-    // 5-year rolling average for smoothing
     const smoothed = rows.map((d, i) => {
         const window = rows.slice(Math.max(0, i - 2), i + 3);
         const avg = d3.mean(window, w => w.femalePct);
@@ -75,7 +61,7 @@ function buildLineChart(anime, anime_chars) {
     container.appendChild(titleEl);
 
     const subtitleEl = document.createElement("p");
-    subtitleEl.textContent = "% of main characters that are female per year (1990–2024). Line shows 5-year rolling average.";
+    subtitleEl.innerHTML = "% of anime per year where ≥50% of main characters are female (1990–2024). Line shows 5-year rolling average.<br>Dots show the raw % of female MCs for that year.<br>Click on a dot to see more details.";    
     subtitleEl.style.fontFamily = "system-ui, sans-serif";
     subtitleEl.style.fontSize = "13px";
     subtitleEl.style.color = "#666";
@@ -94,7 +80,7 @@ function buildLineChart(anime, anime_chars) {
             grid: true
         },
         y: {
-            label: "% Female Main Characters →",
+            label: "% Female Main Characters ↑",
             domain: [0, 1],
             tickFormat: d => `${Math.round(d * 100)}%`,
             grid: true
@@ -105,29 +91,17 @@ function buildLineChart(anime, anime_chars) {
             background: "transparent"
         },
         marks: [
-            // 50% reference line
             Plot.ruleY([0.5], {
                 stroke: "#aaa",
                 strokeWidth: 1,
                 strokeDasharray: "4,4"
             }),
-            // Raw dots per year
-            Plot.dot(rows, {
-                x: "year",
-                y: "femalePct",
-                fill: "#e5b2ed",
-                fillOpacity: 0.4,
-                r: 4,
-                title: d => `${d.year}\n${Math.round(d.femalePct * 100)}% female\n(${d.femaleCount} female, ${d.maleCount} male)`
-            }),
-            // Smoothed line
             Plot.line(smoothed, {
                 x: "year",
                 y: "smoothed",
                 stroke: "#e75480",
                 strokeWidth: 3
             }),
-            // Area under smoothed line
             Plot.areaY(smoothed, {
                 x: "year",
                 y: "smoothed",
@@ -135,7 +109,13 @@ function buildLineChart(anime, anime_chars) {
                 fill: "#e75480",
                 fillOpacity: 0.08
             }),
-            // Annotation at 50% line
+            Plot.dot(rows, {
+                x: "year",
+                y: "femalePct",
+                fill: "#e5b2ed",
+                fillOpacity: 0.4,
+                r: 4
+            }),
             Plot.text([{ year: 1991, femalePct: 0.51 }], {
                 x: "year",
                 y: "femalePct",
@@ -149,11 +129,62 @@ function buildLineChart(anime, anime_chars) {
 
     container.appendChild(plot);
 
+    // Tooltip
+    const tooltip = document.createElement("div");
+    tooltip.style.cssText = `
+        position: fixed;
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-family: system-ui, sans-serif;
+        font-size: 13px;
+        color: #333;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        pointer-events: none;
+        display: none;
+        z-index: 100;
+        line-height: 1.6;
+    `;
+    document.body.appendChild(tooltip);
+
+    const dots = plot.querySelectorAll("circle");
+    dots.forEach((dot, i) => {
+        const d = rows[i];
+        if (!d) return;
+
+        dot.style.cursor = "pointer";
+        dot.addEventListener("mouseover", () => dot.setAttribute("r", 7));
+        dot.addEventListener("mouseout", () => dot.setAttribute("r", 4));
+
+        dot.addEventListener("click", (e) => {
+            tooltip.style.display = "block";
+            tooltip.style.left = `${e.clientX + 12}px`;
+            tooltip.style.top  = `${e.clientY - 10}px`;
+            tooltip.innerHTML = `
+                <strong>${d.year}</strong><br>
+                Female: <span style="color:#e75480">${Math.round(d.femalePct * 100)}%</span>
+                (${d.femaleCount} chars)<br>
+                Male: <span style="color:#4a90e2">${Math.round((1 - d.femalePct) * 100)}%</span>
+                (${d.maleCount} chars)<br>
+                <span style="color:#aaa;font-size:11px">${d.total} total main chars</span>
+            `;
+        });
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest("circle")) {
+            tooltip.style.display = "none";
+        }
+    });
+
     const noteEl = document.createElement("p");
     noteEl.style.fontFamily = "system-ui, sans-serif";
     noteEl.style.fontSize = "12px";
     noteEl.style.color = "#999";
     noteEl.style.marginTop = "8px";
-    noteEl.textContent = `Based on ${mainChars.length.toLocaleString()} main characters from top 2000 anime (years with fewer than 10 main characters excluded).`;
+    noteEl.textContent = 
+    `Based on ${mainChars.length.toLocaleString()} main characters from top 
+    2000 anime (years with fewer than 10 main characters excluded).`;
     container.appendChild(noteEl);
 }

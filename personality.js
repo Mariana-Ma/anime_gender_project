@@ -1,4 +1,4 @@
-// traits.js
+// personality.js
 
 d3.json("cleaned_data/trait_stats.json").then(data => {
     buildTraitCharts(data);
@@ -82,7 +82,7 @@ function buildBarChart(data) {
             padding: 0.3
         },
         y: {
-            label: "% of characters →",
+            label: "% of characters ↑",
             tickFormat: d => d + "%", 
             grid: true,
         },

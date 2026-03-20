@@ -4,20 +4,52 @@
     <meta charset="UTF-8">
     <title>Not Everyone Gets to Be the Hero</title>
     <link rel="stylesheet" href="styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Doodle+Shadow&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <section id="title-section" style="margin-bottom: 70px">
-    <h1>Not Everyone Gets to Be the Hero</h1>
-    <h3>A breakdown of female representation in anime.</h3>
-    <p>As a longtime anime enthusiast, I couldn't help but notice my lack of interest in popular animes recently. 
-      I pinpointed the issue to the lack of female representation and main characters, which led me down this data rabbithole:
-      Can I quantify just how underrepresented women are in anime? 
+
+  <section id="title-section">
+    <div class="title-gradient">
+        <div class="title-illustration-wrapper">
+            <img src="anime-title.png" alt="illustration" class="title-illustration">
+        </div>
+        <div class="title-text-wrapper">
+            <p class="title-eyebrow">Exploring female representation in anime</p>
+            <h1 class="title-heading">
+                Not Everyone<br>
+                Gets to Be a<br>
+                <span class="title-hero">HERO</span>
+            </h1>
+            <p class="title-byline">by Mariana Ma</p>
+        </div>
+    </div>
+    <div class="title-scroll-hint">scroll to explore ↓</div>
+  </section>
+
+  <section id="intro-section">
+    <p class="intro-text">
+        As a longtime anime enthusiast, I couldn't help but notice my growing disinterest in popular titles. 
+        I realized a big reason was because I noticed a lack of female representation and main characters. 
+        That observation sent me down a data rabbit hole:
+    </p>
+    <h3 class="intro-question">Can I quantify just how underrepresented women are in anime?</h3>
+    <p class="intro-subtext">
+        Using data from MyAnimeList's top 2,000 anime by popularity, I scraped character biographies, 
+        extracted gender, personality traits, and roles for over 12,000 characters, 
+        and built this interactive analysis to find out!
     </p>
   </section>
 
   <section id="scatter-section" style="margin-bottom: 50px">
-    <h3>Popularity, Rating, and Gender</h3>
-    <h4>Explore the relationship between anime popularity, average rating, and genre.</h4>
+    <div class="section-header">
+        <h2 class="section-title">Setting The Landscape: Popularity, Rating, and Gender</h2>
+        <p class="section-insight">
+            The most popular and highest-rated anime cluster in the upper right,
+            and when colored by female representation, that corner goes very teal. 
+            When you filter to anime with ≥50% female main characters, you can really
+            see how the top-right thins out.
+        </p>
+    </div>
     <div style="display: flex;">
       <div id="scatter-plot" style="flex: 0 0 auto;"></div>
         <div id="details" style="flex: 1; padding-left: 20px; position: sticky; margin-top: 160px;">
@@ -34,22 +66,53 @@
   </section>
 
   <section id="stackedbar-section" style="margin-bottom: 70px">
-    <h2>Gender Breakdown</h2>
+    <div class="section-header">
+        <h2 class="section-title">Higher-Rated Anime Have Fewer Female Main Characters</h2>
+        <p class="section-insight">
+            Across genres, female main characters are more prominent in genres like romance and fantasy,
+            but fall behind in more action and fighting-based genres. 
+            Additionally, when sorted by score, a clear pattern emerges: the highest-rated anime (8.5+) 
+            are significantly more male-dominated than lower-rated titles.
+        </p>
+    </div>
     <div id="stackedbar-plot"></div>
   </section>
 
   <section id="dumbbell-section" style="margin-bottom: 70px">
-    <h2>Female Main vs. Supporting Characters</h2>
+    <div class="section-header">
+        <h2 class="section-title">In Top-Rated Anime, Female Characters Are Pushed to the Sidelines</h2>
+        <p class="section-insight">
+            Even among female characters that do appear in highly-rated anime, 
+            the majority are supporting rather than main characters. 
+            In the 8.5+ score tier, the gap between female main and supporting characters 
+            is nearly twice as large as the equivalent gap for male characters.
+        </p>
+    </div>
     <div id="dumbbell-plot"></div>
   </section>
 
   <section id="personality-section" style="margin-bottom: 70px">
-    <h2>Personality Traits by Gender</h2>
+    <div class="section-header">
+        <h2 class="section-title">Male Characters Are Defined by Competence, while Female Characters by Appearance & Warmth.</h2>
+        <p class="section-insight">
+            The most common traits for male characters (strong, skilled, powerful, serious) 
+            focus on their abilities and agency. However, female characters are most often described as 
+            beautiful, shy, or cheerful: traits that define how they look or how they make others feel, 
+            not what they are capable of achieving.
+        </p>
+    </div>
     <div id="traits-bar-plot"></div>
   </section>
 
   <section id="lineplot-section" style="margin-bottom: 70px">
-    <h2>Is representation improving over time?</h2>
+    <div class="section-header">
+        <h2 class="section-title">...But Has Representation Been Improving?</h2>
+        <p class="section-insight">
+            The % of female MCs rose steadily through the 2000s, 
+            peaking around 2009–2013. 
+            But since 2014, that % has dropped back below 50% and shows no sign of recovering thus far...
+        </p>
+    </div>
     <div id="linechart-plot"></div>
   </section>
 
@@ -59,10 +122,8 @@
   <script src="nav.js"></script>
   <script src="scatter.js"></script>
   <script src="stackedBar.js"></script>
-  <script src="quadrant.js"></script>
   <script src="dumbbell.js"></script>
   <script src="personality.js"></script>
   <script src="lineChart.js"></script>
 </body>
-  
 </html>

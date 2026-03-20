@@ -1,27 +1,44 @@
 // stackedBar.js
 
-Promise.all([
-    d3.csv("cleaned_data/anime.csv", d3.autoType),
-    d3.csv("data/anime_characters.csv", d3.autoType),
-    d3.csv("cleaned_data/character_personalities_final.csv", d3.autoType)
-]).then(([anime, anime_chars, chars]) => {
-    const genderByChar = {};
-    chars.forEach(c => {
-        genderByChar[c.character_id] = c.gender;
-    });
-    anime_chars.forEach(d => {
-        d.gender = genderByChar[d.character_id] ?? null;
-    });
-
-    buildStackedBar(anime, anime_chars);
+dataReady.then(() => {
+    buildStackedBar(TOP2000_ANIME, TOP2000_ANIME_CHARS, CHARACTERS);
 }).catch(err => {
     console.error("Data loading error:", err);
 });
 
-function buildStackedBar(anime, anime_chars) {
-    const mainChars = anime_chars.filter(d =>
-        d.role === "Main" && (d.gender === "Male" || d.gender === "Female")
+function buildStackedBar(anime, anime_chars, chars) {
+    // Build gender lookup from scraped chars
+    const genderByChar = {};
+    chars.forEach(c => {
+        genderByChar[c.character_id] = c.gender;
+    });
+
+    const scrapedCharIds = new Set(chars.map(c => c.character_id));
+
+    // Deduplicate anime_chars — one row per (character_id, anime_id) pair
+    const seenPairs = new Set();
+    const dedupedChars = anime_chars.filter(d => {
+        const key = `${d.character_id}-${d.anime_id}`;
+        if (seenPairs.has(key)) return false;
+        seenPairs.add(key);
+        return true;
+    });
+
+    // Assign gender
+    dedupedChars.forEach(d => {
+        d.gender = genderByChar[d.character_id] ?? null;
+    });
+
+    // Filter to main chars with known gender from scraped set
+    const mainChars = dedupedChars.filter(d =>
+        d.role === "Main" &&
+        (d.gender === "Male" || d.gender === "Female") &&
+        scrapedCharIds.has(d.character_id)
     );
+
+    // Filter anime to only those in anime_chars (top 2000)
+    const validAnimeIds = new Set(anime_chars.map(d => d.anime_id));
+    anime = anime.filter(d => validAnimeIds.has(d.anime_id));
 
     const animeById = {};
     anime.forEach(d => { animeById[d.anime_id] = d; });
@@ -36,8 +53,8 @@ function buildStackedBar(anime, anime_chars) {
     toggleDiv.style.gap = "8px";
 
     const modes = [
-        { key: "genre", label: "By Genre" },
-        { key: "score", label: "By Score" },
+        { key: "genre",   label: "By Genre" },
+        { key: "score",   label: "By Score" },
         { key: "members", label: "By Popularity" }
     ];
 
@@ -89,7 +106,7 @@ function buildStackedBar(anime, anime_chars) {
 
         const counts = {};
         mainChars.forEach(d => {
-            const group = genreByAnime[d.anime_id];
+            const group = genreByAnime[d.anime_id] ?? "Other";
             if (!group) return;
             if (!counts[group]) counts[group] = { Male: 0, Female: 0 };
             counts[group][d.gender]++;
@@ -100,11 +117,11 @@ function buildStackedBar(anime, anime_chars) {
 
     function getScoreData() {
         const scoreBins = [
-            { label: "8.5+", min: 8.5, max: Infinity },
+            { label: "8.5+",      min: 8.5, max: Infinity },
             { label: "8.0 – 8.5", min: 8.0, max: 8.5 },
             { label: "7.5 – 8.0", min: 7.5, max: 8.0 },
             { label: "7.0 – 7.5", min: 7.0, max: 7.5 },
-            { label: "6.0 – 7.0", min: 6.0, max: 7.0 },
+            { label: "6.0 – 7.0", min: 6.0, max: 7.0 }
         ];
 
         const counts = {};
@@ -123,11 +140,11 @@ function buildStackedBar(anime, anime_chars) {
 
     function getMembersData() {
         const memberBins = [
-            { label: "2M+", min: 2000000, max: Infinity},
-            { label: "1M - 2M", min: 1000000, max: 2000000 },
-            { label: "500k – 1M", min: 500000, max: 1000000 },
-            { label: "200k – 500k", min: 200000, max: 500000 },
-            { label: "Under 200k", min: 0, max: 200000 },
+            { label: "2M+",          min: 2000000, max: Infinity },
+            { label: "1M – 2M",      min: 1000000, max: 2000000 },
+            { label: "500k – 1M",    min: 500000,  max: 1000000 },
+            { label: "200k – 500k",  min: 200000,  max: 500000  },
+            { label: "Under 200k",   min: 0,       max: 200000  }
         ];
 
         const counts = {};
@@ -153,7 +170,7 @@ function buildStackedBar(anime, anime_chars) {
             if (total === 0) return;
             femalePct[group] = c.Female / total;
             tidyData.push({ group, gender: "Female", value: c.Female / total, count: c.Female, total });
-            tidyData.push({ group, gender: "Male",   value: c.Male / total,   count: c.Male,   total });
+            tidyData.push({ group, gender: "Male",   value: c.Male   / total, count: c.Male,   total });
         });
 
         const sortedGroups = fixedOrder
@@ -167,9 +184,9 @@ function buildStackedBar(anime, anime_chars) {
         plotContainer.innerHTML = "";
 
         let counts, fixedOrder;
-        if (mode === "genre")        ({ counts, fixedOrder } = getGenreData());
-        else if (mode === "score")   ({ counts, fixedOrder } = getScoreData());
-        else                         ({ counts, fixedOrder } = getMembersData());
+        if (mode === "genre")      ({ counts, fixedOrder } = getGenreData());
+        else if (mode === "score") ({ counts, fixedOrder } = getScoreData());
+        else                       ({ counts, fixedOrder } = getMembersData());
 
         const { tidyData, sortedGroups } = buildTidyData(counts, fixedOrder);
 
@@ -187,8 +204,8 @@ function buildStackedBar(anime, anime_chars) {
 
         const y_axes = {
             genre:   "\u00A0",
-            score:   "Average Score (1-10)",
-            members: "Popularity (members following)"
+            score:   "Average Score (1-10) ↑",
+            members: "Popularity (members following) ↑"
         };
 
         const titleEl = document.createElement("h3");
@@ -210,7 +227,7 @@ function buildStackedBar(anime, anime_chars) {
         yLabelEl.style.cssText = `
             font-family: system-ui, sans-serif;
             font-size: 14px;
-            margin: 0 0 -50px 110px;  /* 120px matches your marginLeft */
+            margin: 0 0 -50px 110px;
         `;
         plotContainer.appendChild(yLabelEl);
 

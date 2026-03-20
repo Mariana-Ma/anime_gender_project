@@ -1,5 +1,4 @@
-// Add this in a new file: js/nav.js
-// or paste at the bottom of your index.html in a <script> tag
+// nav.js
 
 document.addEventListener("DOMContentLoaded", () => {
     const sections = document.querySelectorAll("section");
