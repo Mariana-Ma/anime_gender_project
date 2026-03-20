@@ -61,7 +61,7 @@ function buildLineChart(anime, anime_chars) {
     container.appendChild(titleEl);
 
     const subtitleEl = document.createElement("p");
-    subtitleEl.innerHTML = "% of anime per year where ≥50% of main characters are female (1990–2024). Line shows 5-year rolling average.<br>Dots show the raw % of female MCs for that year.<br>Click on a dot to see more details.";    
+    subtitleEl.innerHTML = "% of MCs that were female (1990–2024). Line shows 5-year rolling average.<br>Dots show the raw % of female MCs for that year.<br>Click on a dot to see more details.";    
     subtitleEl.style.fontFamily = "system-ui, sans-serif";
     subtitleEl.style.fontSize = "13px";
     subtitleEl.style.color = "#666";
